@@ -1,3 +1,3 @@
 Make:
 	g++ kernel_process.cpp main.cpp -g -o main.elf
-	./main.elf ./images/blue.bmp identity -s
+	./main.elf ./images/test.ppm identity -s
