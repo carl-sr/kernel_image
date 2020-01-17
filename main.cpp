@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	state.ppm.open(state.input_file);
+	state.bmp.ReadFromFile(argv[1]);
 
 	if(state.args & SEQUENTIAL) {
 		std::cout << "Time for sequential algorithm to complete: " << sequential(state) << std::endl;
@@ -129,6 +129,7 @@ void help() {
 	std::cout << "flags are as follows:" << std::endl;
 	std::cout << "\t- '-s' to specify sequential processing" << std::endl;
 	std::cout << "\t- '-p' to specify parallel processing" << std::endl;
+	std::cout << "\t- '-d' to specify distributed processing" << std::endl;
 
 	return;
 }
