@@ -12,6 +12,7 @@ struct State {
 	int args {0};
 	BMP bmp;
 	Kernel_type kern_process;
+	int threads {0};
 };
 
 
@@ -24,5 +25,5 @@ long parallel(State&);
 
 
 
-void kernel_process(State&, int, int);
-void kernel_pixel_process(int, int, Kernel&, State&);
+void kernel_process(BMP&, State&, int, int);
+void kernel_pixel_process(BMP&, BMP&, int, int, Kernel&);

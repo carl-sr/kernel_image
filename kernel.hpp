@@ -2,6 +2,17 @@
 #include <cstring>
 #include <vector>
 
+
+
+// identity
+// edge1
+// edge2
+// edge3
+// sharpen
+// box
+// gaussian
+// unsharp
+
 enum Kernel_type {
 	IDENTITY,
 	EDGE_DETECTION_1,

@@ -2,6 +2,8 @@
 #include <string>
 #include <cstring>
 
+#include <thread>
+
 #include "./kernel_process.hpp"
 
 #define SEQUENTIAL 0b001
@@ -12,6 +14,8 @@ int parse_flags(int argc, char* argv[], State&);
 void help();
 
 int main(int argc, char* argv[]) {
+
+
 	// ./main.elf filename kernel_process -s sequential  -d distributed  -p parallel
 	if(argc > 1 && std::string(argv[1]) == "h") {
 		help();
@@ -37,7 +41,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if(state.args & PARALLEL) {
-		std::cout << "Time for sequential to complete: " << parallel(state) << std::endl;
+		std::cout << "Time for parallel algorithm to complete " << parallel(state) << std::endl;
 	}
 
 	if(state.args & DISTRIBUTED) {
@@ -99,6 +103,10 @@ int parse_flags(int argc, char* argv[], State& s) {
 					break;
 				case ('p'):
 					args = args | PARALLEL;
+					if(strlen(argv[i]) > 2) {
+						std::string str = std::string(argv[i]);
+						s.threads = std::stoi(str.substr(2, str.length()));
+					}
 					break;
 				default:
 					std::cerr << "Unrecognized flag: " << argv[i][1] << std::endl;
@@ -129,7 +137,12 @@ void help() {
 	std::cout << "flags are as follows:" << std::endl;
 	std::cout << "\t- '-s' to specify sequential processing" << std::endl;
 	std::cout << "\t- '-p' to specify parallel processing" << std::endl;
+	std::cout << "\t  number of threads to use can also be" << std::endl;
+	std::cout << "\t  specified as an integer '-p8'" << std::endl;
 	std::cout << "\t- '-d' to specify distributed processing" << std::endl;
+	std::cout << std::endl;
+	std::cout << "files are saved as 'sequential.bmp', 'parallel.bmp'," << std::endl;
+	std::cout << "'distributed.bmp' depending on flags" << std::endl;
 
 	return;
 }
