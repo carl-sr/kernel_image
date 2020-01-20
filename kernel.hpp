@@ -21,12 +21,12 @@ enum Kernel_type {
 	SHARPEN,
 	BOX_BLUR,
 	GAUSSIAN_BLUR,
-	UNSHARP_MASK
+	UNSHARP_MASK,
 };
 
 class Kernel {
 	public:
-		int multiplier {1};
+		float multiplier {0};
 		int dimension;
 		int** grid;
 		
@@ -81,7 +81,6 @@ class Kernel {
 					break;
 				}
 				case BOX_BLUR: {
-					multiplier = 1.0/9.0;
 					dimension = 3;
 					seq = {
 						1, 1, 1,

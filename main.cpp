@@ -16,36 +16,44 @@ void help();
 int main(int argc, char* argv[]) {
 
 
-	// ./main.elf filename kernel_process -s sequential  -d distributed  -p parallel
-	if(argc > 1 && std::string(argv[1]) == "h") {
-		help();
-		return 0;
+	// ./main.elf filename kernel_process -s sequential  -d distributed  -p(x) parallel
+	for(int i = 0; i < argc; i++) {
+		if(std::string(argv[i]) == "-h") {
+			help();
+			return 0;
+		}
 	}
 
 	if(argc < 4) {
-		std::cerr << "Too few arguments (h for help)" << std::endl;
+		std::cerr << "Too few arguments (-h for help)" << std::endl;
 		return 1;
 	}
 
 	State state;
 
-	parse_flags(argc, argv, state);
-	if(state.args == -1) {
+	
+	if(parse_flags(argc, argv, state) == -1) {
 		return 1;
 	}
 
-	state.bmp.ReadFromFile(argv[1]);
+	if(state.args == 0) {
+		std::cerr << "No processing flags specified (-h for help)" << std::endl;
+	}
+
+	if(!state.bmp.ReadFromFile(argv[1])) {
+		return 1;
+	}
 
 	if(state.args & SEQUENTIAL) {
-		std::cout << "Time for sequential algorithm to complete: " << sequential(state) << std::endl;
+		std::cout << "Time for sequential algorithm to complete: " << sequential(state) << "ms" << std::endl;
 	}
 
 	if(state.args & PARALLEL) {
-		std::cout << "Time for parallel algorithm to complete " << parallel(state) << std::endl;
+		std::cout << "Time for parallel algorithm to complete " << parallel(state) << "ms" << std::endl;
 	}
 
 	if(state.args & DISTRIBUTED) {
-		std::cout << "Time for distributed algorithm to complete: " << distributed(state) << std::endl;
+		std::cout << "Time for distributed algorithm to complete: " << distributed(state) << "ms" << std::endl;
 	}
 
 	return 0;
@@ -83,9 +91,8 @@ int parse_flags(int argc, char* argv[], State& s) {
 		s.kern_process = UNSHARP_MASK;
 	}
 	else {
-		std::cerr << "unrecognized kernel process" << std::endl;
-		help();
-		return 1;
+		std::cerr << "unrecognized kernel process: " << k_type << " (-h for help)" <<std::endl;
+		return -1;
 	}
 
 
@@ -109,7 +116,7 @@ int parse_flags(int argc, char* argv[], State& s) {
 					}
 					break;
 				default:
-					std::cerr << "Unrecognized flag: " << argv[i][1] << std::endl;
+					std::cerr << "Unrecognized flag: " << argv[i] << " (-h for help)" << std::endl;
 					return -1;
 			}
 		}
@@ -117,32 +124,37 @@ int parse_flags(int argc, char* argv[], State& s) {
 }
 
 void help() {
-	std::cout << "Kernel Process" << std::endl;
-	std::cout << "Rami Hansen" << std::endl;
-	std::cout << "===============================================" << std::endl;
-	std::cout << "Launch the program from command line with" << std::endl;
-	std::cout << "the following arguments:" << std::endl;
-	std::cout << "./main.elf [input image] [kernel process] [flags]" << std::endl;
-	std::cout << std::endl;
-	std::cout << "kernel processes are as follows:" << std::endl;
-	std::cout << "\t- identity" << std::endl;
-	std::cout << "\t- edge1" << std::endl;
-	std::cout << "\t- edge2" << std::endl;
-	std::cout << "\t- edge3" << std::endl;
-	std::cout << "\t- sharpen" << std::endl;
-	std::cout << "\t- box" << std::endl;
-	std::cout << "\t- gaussian" << std::endl;
-	std::cout << "\t- unsharp" << std::endl;
-	std::cout << std::endl;
-	std::cout << "flags are as follows:" << std::endl;
-	std::cout << "\t- '-s' to specify sequential processing" << std::endl;
-	std::cout << "\t- '-p' to specify parallel processing" << std::endl;
-	std::cout << "\t  number of threads to use can also be" << std::endl;
-	std::cout << "\t  specified as an integer '-p8'" << std::endl;
-	std::cout << "\t- '-d' to specify distributed processing" << std::endl;
-	std::cout << std::endl;
-	std::cout << "files are saved as 'sequential.bmp', 'parallel.bmp'," << std::endl;
-	std::cout << "'distributed.bmp' depending on flags" << std::endl;
-
-	return;
+	std::cout << "********************************************************" << std::endl;
+	std::cout << "* imgkrn: Kernel Convolution Image Processing          *" << std::endl;
+	std::cout << "* Rami Hansen                                          *" << std::endl;
+	std::cout << "* ==================================================== *" << std::endl;
+	std::cout << "* Launch the program from command line with            *" << std::endl;
+	std::cout << "* the following arguments:                             *" << std::endl;
+	std::cout << "* ./imgkrn.elf [input image] [kernel process] [flags]  *" << std::endl;
+	std::cout << "*                                                      *" << std::endl;
+	std::cout << "* Kernel processes are as follows:                     *" << std::endl;
+	std::cout << "*    - identity                                        *" << std::endl;
+	std::cout << "*    - edge1                                           *" << std::endl;
+	std::cout << "*    - edge2                                           *" << std::endl;
+	std::cout << "*    - edge3                                           *" << std::endl;
+	std::cout << "*    - sharpen                                         *" << std::endl;
+	std::cout << "*    - box                                             *" << std::endl;
+	std::cout << "*    - gaussian                                        *" << std::endl;
+	std::cout << "*    - unsharp                                         *" << std::endl;
+	std::cout << "*                                                      *" << std::endl;
+	std::cout << "* Flags are as follows:                                *" << std::endl;
+	std::cout << "*    - '-s' to specify sequential processing.          *" << std::endl;
+	std::cout << "*    - '-p' to specify parallel processing.            *" << std::endl;
+	std::cout << "*      The number of threads to be used is specified   *" << std::endl;
+	std::cout << "*      by an additional integer appended to the end of *" << std::endl;
+	std::cout << "*      the '-p' flag: '-p8' for 8 thread processing    *" << std::endl;
+	std::cout << "*    - '-d' to specify distributed processing.         *" << std::endl;
+	std::cout << "*    - '-h' to print this help dialogue and exit.      *" << std::endl;
+	std::cout << "*                                                      *" << std::endl;
+	std::cout << "* Files are written as:                                *" << std::endl;
+	std::cout << "*    - 'sequential.bmp'                                *" << std::endl;
+	std::cout << "*    - 'parallel.bmp'                                  *" << std::endl;
+	std::cout << "*    - 'distributed.bmp'                               *" << std::endl;
+	std::cout << "*                                                      *" << std::endl;
+	std::cout << "********************************************************" << std::endl;
 }

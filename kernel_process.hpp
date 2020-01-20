@@ -23,7 +23,6 @@ long distributed(State&);
 long parallel(State&);
 
 
-
-
 void kernel_process(BMP&, State&, int, int);
 void kernel_pixel_process(BMP&, BMP&, int, int, Kernel&);
+bool test_limit(BMP&, int, int);
