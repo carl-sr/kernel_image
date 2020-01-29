@@ -7,11 +7,11 @@
 #include <thread>
 #include <functional>
 
+
 // return the timing for each function
 
 long sequential(State& state) {
 	BMP output_file = state.bmp;
-
 
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
@@ -75,6 +75,9 @@ long parallel(State& state) {
 }
 
 long distributed(State& state) {
+
+	BMP output_file = state.bmp;
+
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 
 
@@ -84,6 +87,9 @@ long distributed(State& state) {
 
 
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
+
+	output_file.WriteToFile("distributed.bmp");
+
 	return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
 

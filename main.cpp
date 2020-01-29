@@ -15,8 +15,7 @@ void help();
 
 int main(int argc, char* argv[]) {
 
-
-	// ./main.elf filename kernel_process -s sequential  -d distributed  -p(x) parallel
+	// if the help flag is present, call help and return
 	for(int i = 0; i < argc; i++) {
 		if(std::string(argv[i]) == "-h") {
 			help();
@@ -30,7 +29,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	State state;
-
 	
 	if(parse_flags(argc, argv, state) == -1) {
 		return 1;
@@ -126,6 +124,7 @@ int parse_flags(int argc, char* argv[], State& s) {
 void help() {
 	std::cout << "********************************************************" << std::endl;
 	std::cout << "* imgkrn: Kernel Convolution Image Processing          *" << std::endl;
+	std::cout << "* Made for Programming III                             *" << std::endl;
 	std::cout << "* Rami Hansen                                          *" << std::endl;
 	std::cout << "* ==================================================== *" << std::endl;
 	std::cout << "* Launch the program from command line with            *" << std::endl;
