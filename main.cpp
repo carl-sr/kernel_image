@@ -51,7 +51,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	if(state.args & DISTRIBUTED) {
-		std::cout << "Time for distributed algorithm to complete: " << distributed(state) << "ms" << std::endl;
+		std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + std::to_string(state.kern_process);
+		std::system(exec.c_str());
 	}
 
 	return 0;
@@ -105,6 +106,10 @@ int parse_flags(int argc, char* argv[], State& s) {
 					break;
 				case ('d'):
 					args = args | DISTRIBUTED;
+					if(strlen(argv[i]) > 2) {
+						std::string str = std::string(argv[i]);
+						s.mpi_procs = std::stoi(str.substr(2, str.length()));
+					}
 					break;
 				case ('p'):
 					args = args | PARALLEL;
@@ -148,6 +153,9 @@ void help() {
 	std::cout << "*      by an additional integer appended to the end of *" << std::endl;
 	std::cout << "*      the '-p' flag: '-p8' for 8 thread processing    *" << std::endl;
 	std::cout << "*    - '-d' to specify distributed processing.         *" << std::endl;
+	std::cout << "*      The number of processes to be used is specified *" << std::endl;
+	std::cout << "*      by an additional integer appended to the end of *" << std::endl;
+	std::cout << "*      the '-d' flag: '-d8' for 8 processes            *" << std::endl;
 	std::cout << "*    - '-h' to print this help dialogue and exit.      *" << std::endl;
 	std::cout << "*                                                      *" << std::endl;
 	std::cout << "* Files are written as:                                *" << std::endl;

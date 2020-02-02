@@ -1,12 +1,28 @@
 Make:
 	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
 	./main.elf ./images/rachel.bmp gaussian -p
-	feh ./parallel.bmp
 
 compile:
 	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
 
+compile_all:
+	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
+	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -o ./mpi/mpi.elf
+
+compile_mpi:
+	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -o ./mpi/mpi.elf
+
 run:
+	./main.elf ./images/dot.bmp box
+
+run_s:
 	./main.elf ./images/dot.bmp box -s
-	# feh ./parallel.bmp
-	feh ./sequential.bmp
+
+run_p:
+	./main.elf ./images/dot.bmp box -p
+
+run_d:
+	./main.elf ./images/dot.bmp box -d
+
+run_mpi:
+	mpirun -np 4 ./mpi/mpi.elf ./images/portland.bmp
