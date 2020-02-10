@@ -13,16 +13,16 @@ compile_mpi:
 	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -o ./mpi/mpi.elf
 
 run:
-	./main.elf ./images/dot.bmp box
+	./main.elf ./images/portland.bmp box
 
 run_s:
-	./main.elf ./images/dot.bmp box -s
+	./main.elf ./images/portland.bmp box -s
 
 run_p:
-	./main.elf ./images/dot.bmp box -p
+	./main.elf ./images/portland.bmp box -p
 
 run_d:
-	./main.elf ./images/dot.bmp box -d
+	./main.elf ./images/portland.bmp box -d
 
 run_mpi:
-	mpirun -np 4 ./mpi/mpi.elf ./images/portland.bmp
+	mpirun -np 4 ./mpi/mpi.elf ./images/portland.bmp 1

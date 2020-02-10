@@ -38,20 +38,22 @@ int main(int argc, char* argv[]) {
 		std::cerr << "No processing flags specified (-h for help)" << std::endl;
 	}
 
-	if(!state.bmp.ReadFromFile(argv[1])) {
-		return 1;
-	}
+	if(state.args & (SEQUENTIAL | PARALLEL)) {
+		if(!state.bmp.ReadFromFile(argv[1])) {
+			return 1;
+		}
 
-	if(state.args & SEQUENTIAL) {
-		std::cout << "Time for sequential algorithm to complete: " << sequential(state) << "ms" << std::endl;
-	}
+		if(state.args & SEQUENTIAL) {
+			std::cout << "Time for sequential algorithm to complete: " << sequential(state) << "ms" << std::endl;
+		}
 
-	if(state.args & PARALLEL) {
-		std::cout << "Time for parallel algorithm to complete " << parallel(state) << "ms" << std::endl;
+		if(state.args & PARALLEL) {
+			std::cout << "Time for parallel algorithm to complete " << parallel(state) << "ms" << std::endl;
+		}
 	}
 
 	if(state.args & DISTRIBUTED) {
-		std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + std::to_string(state.kern_process);
+		std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
 		std::system(exec.c_str());
 	}
 
@@ -109,6 +111,9 @@ int parse_flags(int argc, char* argv[], State& s) {
 					if(strlen(argv[i]) > 2) {
 						std::string str = std::string(argv[i]);
 						s.mpi_procs = std::stoi(str.substr(2, str.length()));
+						if(s.mpi_procs == 1) {
+							s.mpi_procs = 2;
+						}
 					}
 					break;
 				case ('p'):
@@ -155,7 +160,7 @@ void help() {
 	std::cout << "*    - '-d' to specify distributed processing.         *" << std::endl;
 	std::cout << "*      The number of processes to be used is specified *" << std::endl;
 	std::cout << "*      by an additional integer appended to the end of *" << std::endl;
-	std::cout << "*      the '-d' flag: '-d8' for 8 processes            *" << std::endl;
+	std::cout << "*      the '-d' flag: '-d8' for 8 processes.           *" << std::endl;
 	std::cout << "*    - '-h' to print this help dialogue and exit.      *" << std::endl;
 	std::cout << "*                                                      *" << std::endl;
 	std::cout << "* Files are written as:                                *" << std::endl;
