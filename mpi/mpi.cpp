@@ -137,5 +137,4 @@ void mpi_slave(BMP& output_file, State& s) {
 			MPI_Send(&send_pixel, 5, MPI_INT, 0, 0, MPI_COMM_WORLD);
 		}
 	}
-	std::cout << "slave finished sending" << std::endl;
 }
