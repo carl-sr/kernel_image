@@ -62,7 +62,8 @@ int main(int argc, char* argv[]) {
 
 		if(state.args & DISTRIBUTED) {
 			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
-			int time = std::system(exec.c_str());
+			int time {0};
+			std::system(exec.c_str());
 			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << "mpi processes: " << time << "ms" << std::endl;
 		}
 	}
@@ -91,13 +92,15 @@ int main(int argc, char* argv[]) {
 		}
 
 		if(state.args & DISTRIBUTED) {
+			// open socket for transmitting time values
+
 			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
 
 			long total {0};
 			for(int i = 0; i < state.test_execs; i++) {
 				total += std::system(exec.c_str());
 			}
-			std::cout << "Average time for distributed algorithm to complete with" << state.mpi_procs << "mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
+			std::cout << "Average time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
 
 		}
 	}
