@@ -25,6 +25,7 @@ struct mpi_pixel {
 // process to be compiled into a complete image and saved.
 
 int main(int argc, char* argv[]) {
+	SetEasyBMPwarningsOff();
 	int ierr = MPI_Init(&argc, &argv);
 
 	int id;

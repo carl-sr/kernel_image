@@ -15,6 +15,7 @@ int parse_flags(int argc, char* argv[], State&);
 void help();
 
 int main(int argc, char* argv[]) {
+	SetEasyBMPwarningsOff();
 
 	// if the help flag is present, call help and return
 	for(int i = 0; i < argc; i++) {
