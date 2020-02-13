@@ -70,26 +70,6 @@ long parallel(State& state) {
 	return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
 
-long distributed(State& state) {
-
-	BMP output_file = state.bmp;
-
-	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-
-
-
-	for(int i = 0; i < 10000000; i++);
-
-
-
-	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-
-	output_file.WriteToFile("distributed.bmp");
-
-	return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-}
-
-
 void kernel_process(BMP& output, State& state, int start_row, int end_row) {
 	BMP& input = state.bmp;
 	Kernel k = Kernel(state.kern_process);

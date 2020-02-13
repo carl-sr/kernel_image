@@ -1,6 +1,6 @@
 Make:
 	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
-	./main.elf ./images/rachel.bmp gaussian -p
+	./main.elf ./images/portland.bmp gaussian -p
 
 compile:
 	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
