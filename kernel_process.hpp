@@ -14,6 +14,7 @@ struct State {
 	Kernel_type kern_process;
 	int threads {0};
 	int mpi_procs {4};
+	int test_execs {2};
 };
 
 

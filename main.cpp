@@ -9,6 +9,7 @@
 #define SEQUENTIAL 0b001
 #define DISTRIBUTED 0b010
 #define PARALLEL 0b100
+#define TEST 0b1000
 
 int parse_flags(int argc, char* argv[], State&);
 void help();
@@ -34,27 +35,70 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	if(state.args == 0) {
+	if(state.args == 0 || state.args == 0b1000) {
 		std::cerr << "No processing flags specified (-h for help)" << std::endl;
 	}
 
-	if(state.args & (SEQUENTIAL | PARALLEL)) {
-		if(!state.bmp.ReadFromFile(argv[1])) {
-			return 1;
-		}
-
-		if(state.args & SEQUENTIAL) {
-			std::cout << "Time for sequential algorithm to complete: " << sequential(state) << "ms" << std::endl;
-		}
-
-		if(state.args & PARALLEL) {
-			std::cout << "Time for parallel algorithm to complete " << parallel(state) << "ms" << std::endl;
-		}
+	if(!state.threads) {
+		state.threads = std::thread::hardware_concurrency();
 	}
 
-	if(state.args & DISTRIBUTED) {
-		std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
-		std::system(exec.c_str());
+	if(state.args & TEST == 0) {
+		// run each process only once
+		if(state.args & (SEQUENTIAL | PARALLEL)) {
+			if(!state.bmp.ReadFromFile(argv[1])) {
+				return 1;
+			}
+
+			if(state.args & SEQUENTIAL) {
+				std::cout << "Time for sequential algorithm to complete: " << sequential(state) << "ms" << std::endl;
+			}
+
+			if(state.args & PARALLEL) {
+				std::cout << "Time for parallel algorithm to complete with " << state.threads << "threads:" << parallel(state) << "ms" << std::endl;
+			}
+		}
+
+		if(state.args & DISTRIBUTED) {
+			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
+			int time = std::system(exec.c_str());
+			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << "mpi processes: " << time << "ms" << std::endl;
+		}
+	}
+	else {
+		// run each process n times, report the average.
+		if(state.args & (SEQUENTIAL | PARALLEL)) {
+			if(!state.bmp.ReadFromFile(argv[1])) {
+				return 1;
+			}
+
+			if(state.args & SEQUENTIAL) {
+				long total {0};
+				for(int i = 0; i < state.test_execs; i++) {
+					total += sequential(state);
+				}
+				std::cout << "Average time for sequential algorithm to complete, (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
+			}
+
+			if(state.args & PARALLEL) {
+				long total {0};
+				for(int i = 0; i < state.test_execs; i++) {
+					total += parallel(state);
+				}
+				std::cout << "Average time for parallel algorithm to complete with " << state.threads << " threads, (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
+			}
+		}
+
+		if(state.args & DISTRIBUTED) {
+			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
+
+			long total {0};
+			for(int i = 0; i < state.test_execs; i++) {
+				total += std::system(exec.c_str());
+			}
+			std::cout << "Average time for distributed algorithm to complete with" << state.mpi_procs << "mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
+
+		}
 	}
 
 	return 0;
@@ -123,6 +167,13 @@ int parse_flags(int argc, char* argv[], State& s) {
 						s.threads = std::stoi(str.substr(2, str.length()));
 					}
 					break;
+				case ('t'):
+					args = args | TEST;
+					if(strlen(argv[i]) > 2) {
+						std::string str = std::string(argv[i]);
+						s.test_execs = std::stoi(str.substr(2, str.length()));
+					}
+					break;
 				default:
 					std::cerr << "Unrecognized flag: " << argv[i] << " (-h for help)" << std::endl;
 					return -1;
@@ -161,6 +212,9 @@ void help() {
 	std::cout << "*      The number of processes to be used is specified *" << std::endl;
 	std::cout << "*      by an additional integer appended to the end of *" << std::endl;
 	std::cout << "*      the '-d' flag: '-d8' for 8 processes.           *" << std::endl;
+	std::cout << "*    - '-t' enable the testing mode. The average for   *" << std::endl;
+	std::cout << "*      n executions (specified '-tn', default 2) will  *" << std::endl;
+	std::cout << "*      be returned.                                    *" << std::endl;
 	std::cout << "*    - '-h' to print this help dialogue and exit.      *" << std::endl;
 	std::cout << "*                                                      *" << std::endl;
 	std::cout << "* Files are written as:                                *" << std::endl;

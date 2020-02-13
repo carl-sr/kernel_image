@@ -38,12 +38,8 @@ long parallel(State& state) {
 		thread_count = state.threads;
 	}
 
-	std::cout << "with " << thread_count << " threads: ";
-
-
 	// the interval with which to divide image processing
 	int interval = output_file.TellHeight()/thread_count;
-
 
 	// start actual processing
 	std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
