@@ -6,9 +6,9 @@
 
 #include "./kernel_process.hpp"
 
-#define SEQUENTIAL 0b001
-#define DISTRIBUTED 0b010
-#define PARALLEL 0b100
+#define SEQUENTIAL 0b0001
+#define DISTRIBUTED 0b0010
+#define PARALLEL 0b0100
 #define TEST 0b1000
 
 int parse_flags(int argc, char* argv[], State&);
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 		state.threads = std::thread::hardware_concurrency();
 	}
 
-	if(state.args & TEST == 0) {
+	if((state.args & TEST) == 0) {
 		// run each process only once
 		if(state.args & (SEQUENTIAL | PARALLEL)) {
 			if(!state.bmp.ReadFromFile(argv[1])) {
@@ -56,14 +56,14 @@ int main(int argc, char* argv[]) {
 			}
 
 			if(state.args & PARALLEL) {
-				std::cout << "Time for parallel algorithm to complete with " << state.threads << "threads:" << parallel(state) << "ms" << std::endl;
+				std::cout << "Time for parallel algorithm to complete with " << state.threads << " threads: " << parallel(state) << "ms" << std::endl;
 			}
 		}
 
 		if(state.args & DISTRIBUTED) {
 			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
 			int time = std::system(exec.c_str());
-			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << "mpi processes: " << time << "ms" << std::endl;
+			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes: " << time << "ms" << std::endl;
 		}
 	}
 	else {
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 			for(int i = 0; i < state.test_execs; i++) {
 				total += std::system(exec.c_str());
 			}
-			std::cout << "Average time for distributed algorithm to complete with" << state.mpi_procs << "mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
+			std::cout << "Average time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
 
 		}
 	}

@@ -51,7 +51,6 @@ int main(int argc, char* argv[]) {
 		// write file and display execution time
 		output_file.WriteToFile("distributed.bmp");
 		long time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-		std::cout << "Time for distributed algorithm to complete: " << time << "ms" << std::endl;
 	}
 	else {
 		// This is a slave process
