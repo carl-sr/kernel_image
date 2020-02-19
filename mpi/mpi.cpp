@@ -1,12 +1,17 @@
 #include <iostream>
 #include <chrono>
 #include <mpi.h>
+#include <sys/socket.h> 
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include "../kernel_process.hpp"
 #include "../EasyBMP.h"
 
 void mpi_master(BMP&, State&);
 void mpi_slave(BMP&, State&);
+
+int socket_send(int, long);
 
 // used for transmitting a processed pixel back to the master process
 #pragma pack(2)
@@ -33,6 +38,8 @@ int main(int argc, char* argv[]) {
 	
 	long time {0};
 
+	int port = std::stoi(argv[3]);
+
 	if(id == 0) {
 		// This is the master process
 		State s;
@@ -51,7 +58,11 @@ int main(int argc, char* argv[]) {
 		// write file and display execution time
 		output_file.WriteToFile("distributed.bmp");
 		long time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-		std::cout << "Time for distributed algorithm to complete: " << time << "ms" << std::endl;
+
+		// communicate execution time
+		if(socket_send(port, time)) {
+			return -1;
+		}
 	}
 	else {
 		// This is a slave process
@@ -138,4 +149,34 @@ void mpi_slave(BMP& output_file, State& s) {
 			MPI_Send(&send_pixel, 5, MPI_INT, 0, 0, MPI_COMM_WORLD);
 		}
 	}
+}
+
+
+int socket_send(int port, long time) {
+	// adapted from: https://www.geeksforgeeks.org/socket-programming-cc/
+	// send given long int on given port
+	int sock = 0;
+
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		std::cerr << "Socket Error" << std::endl;
+		return -1;
+	}
+   
+	sockaddr_in serv_addr;
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(port);
+	   
+	// Convert IPv4 and IPv6 addresses from text to binary form 
+	if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+		std::cerr << "Invalid Address" << std::endl;
+		return -1;
+	}
+   
+	if (connect(sock, reinterpret_cast<sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0) {
+		std::cerr << "Connect failed" << std::endl;
+		return -1;
+	}
+	
+	send(sock , &time, sizeof(time), 0);
+	return 0;
 }

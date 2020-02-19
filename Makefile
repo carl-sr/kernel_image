@@ -7,10 +7,10 @@ compile:
 
 compile_all:
 	g++ -pthread kernel_process.cpp EasyBMP.cpp main.cpp -g -o main.elf
-	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -o ./mpi/mpi.elf
+	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -g -o ./mpi/mpi.elf
 
 compile_mpi:
-	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -o ./mpi/mpi.elf
+	mpic++ ./mpi/mpi.cpp EasyBMP.cpp kernel_process.cpp -g -o ./mpi/mpi.elf
 
 run:
 	./main.elf ./images/portland.bmp box
