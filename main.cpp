@@ -2,6 +2,14 @@
 #include <string>
 #include <cstring>
 
+#include <sys/socket.h> 
+#include <arpa/inet.h>
+#include <stdlib.h> 
+#include <unistd.h>
+#include <ctime>
+
+
+
 #include <thread>
 
 #include "./kernel_process.hpp"
@@ -11,11 +19,16 @@
 #define PARALLEL 0b0100
 #define TEST 0b1000
 
+#define STARTING_PORT 9000
+
 int parse_flags(int argc, char* argv[], State&);
 void help();
+long socket_recv(int);
+
 
 int main(int argc, char* argv[]) {
 	SetEasyBMPwarningsOff();
+	srand(time(NULL));
 
 	// if the help flag is present, call help and return
 	for(int i = 0; i < argc; i++) {
@@ -40,6 +53,7 @@ int main(int argc, char* argv[]) {
 		std::cerr << "No processing flags specified (-h for help)" << std::endl;
 	}
 
+	// find the number of processing cores user has not specified number of processes to use
 	if(!state.threads) {
 		state.threads = std::thread::hardware_concurrency();
 	}
@@ -61,13 +75,17 @@ int main(int argc, char* argv[]) {
 		}
 
 		if(state.args & DISTRIBUTED) {
-			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
-			int time = std::system(exec.c_str());
-			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes: " << time << "ms" << std::endl;
+			// open socket for transmitting time values
+			// random port STARTING_PORT + [0, 500) to avoid port conflicts
+			int port = STARTING_PORT + (rand() % 500);
+			// start the mpi process in the background
+			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process) + " " + std::to_string(port) + " &";
+			std::system(exec.c_str());
+			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << "mpi processes: " << socket_recv(port) << "ms" << std::endl;
 		}
 	}
 	else {
-		// run each process n times, report the average.
+		// run each process n times, report the average
 		if(state.args & (SEQUENTIAL | PARALLEL)) {
 			if(!state.bmp.ReadFromFile(argv[1])) {
 				return 1;
@@ -91,11 +109,15 @@ int main(int argc, char* argv[]) {
 		}
 
 		if(state.args & DISTRIBUTED) {
-			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process);
-
 			long total {0};
+			// random port STARTING_PORT + [0, 500) to avoid port conflicts
+			int port = STARTING_PORT + (rand() % 500);
 			for(int i = 0; i < state.test_execs; i++) {
-				total += std::system(exec.c_str());
+				// port becomes port + i to avoid attempting to use a port that has not yet been freed for use
+				// start the mpi process in the background
+				std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process) + " " + std::to_string(port + i) + " &";
+				std::system(exec.c_str());
+				total += socket_recv(port + i);
 			}
 			std::cout << "Average time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes (" << state.test_execs << " runs): " << total/state.test_execs << "ms, total time: " << total << "ms" << std::endl;
 
@@ -224,4 +246,50 @@ void help() {
 	std::cout << "*    - 'distributed.bmp'                               *" << std::endl;
 	std::cout << "*                                                      *" << std::endl;
 	std::cout << "********************************************************" << std::endl;
+}
+
+long socket_recv(int port) {
+	// adapted from: https://www.geeksforgeeks.org/socket-programming-cc/
+	// wait to receive a long int from given port
+	long time {0};
+
+    // Creating socket file descriptor 
+    int server_fd;
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        std::cerr << "Socket Failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+       
+    // Forcefully attaching socket to the port
+    int opt = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        std::cerr << "Setsockopt Error" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    sockaddr_in address;
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(port);
+    int addrlen = sizeof(address);
+       
+    // Forcefully attaching socket to the port
+    if (bind(server_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) < 0) {
+        std::cerr << "Bind failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        std::cerr << "Listen failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    int new_socket;
+    if ((new_socket = accept(server_fd, reinterpret_cast<sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen))) < 0) {
+        std::cerr << "Accept Failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+	int valread = read(new_socket, &time, sizeof(time));
+
+    return time;
 }
