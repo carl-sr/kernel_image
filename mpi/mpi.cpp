@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
 		// This is the master process
 		State s;
 		if(!s.bmp.ReadFromFile(argv[1])) {
+			std::cerr << "File '" << argv[1] << "' was unable to be opened" << std::endl;
 			return 1;
 		}
 
@@ -56,11 +57,14 @@ int main(int argc, char* argv[]) {
 		std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 		
 		// write file and display execution time
-		output_file.WriteToFile("distributed.bmp");
+		if(!output_file.WriteToFile("distributed.bmp")) {
+			std::cerr << "Unable to write file 'distributed.bmp'" << std::endl;
+		}
 		long time = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
 		// communicate execution time
 		if(socket_send(port, time)) {
+			std::cerr << "Unable to transmit processing time (" << time << "ms)" << std::endl;
 			return -1;
 		}
 	}
@@ -68,6 +72,7 @@ int main(int argc, char* argv[]) {
 		// This is a slave process
 		State s;
 		if(!s.bmp.ReadFromFile(argv[1])) {
+			std::cerr << "File '" << argv[1] << "' was unable to be opened" << std::endl;
 			return 1;
 		}
 
@@ -158,7 +163,7 @@ int socket_send(int port, long time) {
 	int sock = 0;
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		std::cerr << "Socket Error" << std::endl;
+		std::cerr << "Error: Sending socket Error" << std::endl;
 		return -1;
 	}
    
@@ -168,12 +173,12 @@ int socket_send(int port, long time) {
 	   
 	// Convert IPv4 and IPv6 addresses from text to binary form 
 	if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
-		std::cerr << "Invalid Address" << std::endl;
+		std::cerr << "Error: Sending socket invalid Address" << std::endl;
 		return -1;
 	}
    
 	if (connect(sock, reinterpret_cast<sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0) {
-		std::cerr << "Connect failed" << std::endl;
+		std::cerr << "Error: Sending socket connect failed" << std::endl;
 		return -1;
 	}
 	

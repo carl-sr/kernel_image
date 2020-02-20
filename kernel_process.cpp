@@ -19,7 +19,9 @@ long sequential(State& state) {
 
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 
-	output_file.WriteToFile("sequential.bmp");
+	if(!output_file.WriteToFile("sequential.bmp")) {
+		std::cerr << "Unable to write file 'sequential.bmp'" << std::endl;
+	}
 	return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
 
@@ -65,7 +67,9 @@ long parallel(State& state) {
 	// get time once all actual processing is completed
 	std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
 
-	output_file.WriteToFile("parallel.bmp");
+	if(!output_file.WriteToFile("parallel.bmp")) {
+		std::cerr << "Unable to write file 'parallel.bmp'" << std::endl;
+	}
 
 	return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }

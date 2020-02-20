@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
 		// run each process only once
 		if(state.args & (SEQUENTIAL | PARALLEL)) {
 			if(!state.bmp.ReadFromFile(argv[1])) {
+				std::cerr << "File '" << argv[1] << "' was unable to be opened" << std::endl;
 				return 1;
 			}
 
@@ -88,6 +89,7 @@ int main(int argc, char* argv[]) {
 		// run each process n times, report the average
 		if(state.args & (SEQUENTIAL | PARALLEL)) {
 			if(!state.bmp.ReadFromFile(argv[1])) {
+				std::cerr << "File '" << argv[1] << "' was unable to be opened" << std::endl;
 				return 1;
 			}
 
@@ -159,7 +161,7 @@ int parse_flags(int argc, char* argv[], State& s) {
 		s.kern_process = UNSHARP_MASK;
 	}
 	else {
-		std::cerr << "unrecognized kernel process: " << k_type << " (-h for help)" <<std::endl;
+		std::cerr << "unrecognized kernel process: '" << k_type << "' (-h for help)" <<std::endl;
 		return -1;
 	}
 
@@ -178,6 +180,8 @@ int parse_flags(int argc, char* argv[], State& s) {
 					if(strlen(argv[i]) > 2) {
 						std::string str = std::string(argv[i]);
 						s.mpi_procs = std::stoi(str.substr(2, str.length()));
+						// There cannot be only one mpi process
+						// Structure requires at least one slave process
 						if(s.mpi_procs == 1) {
 							s.mpi_procs = 2;
 						}
@@ -256,14 +260,14 @@ long socket_recv(int port) {
     // Creating socket file descriptor 
     int server_fd;
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        std::cerr << "Socket Failed" << std::endl;
+        std::cerr << "Critical Error: Receiving socket Failed" << std::endl;
         exit(EXIT_FAILURE);
     }
        
     // Forcefully attaching socket to the port
     int opt = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        std::cerr << "Setsockopt Error" << std::endl;
+        std::cerr << "Critical Error: Receiving socket setsockopt Error" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -275,18 +279,18 @@ long socket_recv(int port) {
        
     // Forcefully attaching socket to the port
     if (bind(server_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) < 0) {
-        std::cerr << "Bind failed" << std::endl;
+        std::cerr << "Critical Error: Receiving socket bind failed" << std::endl;
         exit(EXIT_FAILURE);
     }
 
     if (listen(server_fd, 3) < 0) {
-        std::cerr << "Listen failed" << std::endl;
+        std::cerr << "Critical Error: Receiving socket listen failed" << std::endl;
         exit(EXIT_FAILURE);
     }
     
     int new_socket;
     if ((new_socket = accept(server_fd, reinterpret_cast<sockaddr*>(&address), reinterpret_cast<socklen_t*>(&addrlen))) < 0) {
-        std::cerr << "Accept Failed" << std::endl;
+        std::cerr << "Critical Error: Receiving socket connection accept Failed" << std::endl;
         exit(EXIT_FAILURE);
     }
 	int valread = read(new_socket, &time, sizeof(time));
