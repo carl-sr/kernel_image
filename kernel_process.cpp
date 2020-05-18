@@ -87,15 +87,7 @@ void kernel_process(BMP& output, State& state, int start_row, int end_row) {
 }
 
 void kernel_pixel_process(BMP& output_file, BMP& input_file, int pixel_x, int pixel_y, Kernel& k) {
-	// std::cout << "kernel pixel process" << std::endl;
-	RGBApixel* p = input_file(pixel_x, pixel_y);
 	RGBApixel* set = output_file(pixel_x, pixel_y);
-	// set->Red = 0xff;
-	// set->Green = 0;
-	// set->Blue = 0;
-	// return;
-
-
 	
 	// how many pixels were processed
 	int pixel_count = 0;
@@ -151,7 +143,7 @@ void kernel_pixel_process(BMP& output_file, BMP& input_file, int pixel_x, int pi
 		alpha /= pixel_count;
 	}
 	
-
+	// if less than zero set to zero
 	if(red < 0) {
 		red = 0;
 	}
@@ -160,6 +152,17 @@ void kernel_pixel_process(BMP& output_file, BMP& input_file, int pixel_x, int pi
 	}
 	if(blue < 0) {
 		blue = 0;
+	}
+
+	// if greater than 255 set to 255
+	if(red > 0xff) {
+		red = 0xff;
+	}
+	if(green > 0xff) {
+		green = 0xff;
+	}
+	if(blue > 0xff) {
+		blue = 0xff;
 	}
 
 	set->Red = red;

@@ -46,7 +46,6 @@ int main(int argc, char* argv[]) {
 	State state;
 	
 	if(parse_flags(argc, argv, state) == -1) {
-		std::cout << "PARSE FLAGS 1\n";
 		return 1;
 	}
 
