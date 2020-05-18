@@ -27,7 +27,7 @@ long socket_recv(int);
 
 
 int main(int argc, char* argv[]) {
-	SetEasyBMPwarningsOff();
+	// SetEasyBMPwarningsOff();
 	srand(time(NULL));
 
 	// if the help flag is present, call help and return
@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
 	State state;
 	
 	if(parse_flags(argc, argv, state) == -1) {
+		std::cout << "PARSE FLAGS 1\n";
 		return 1;
 	}
 
@@ -70,7 +71,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			if(state.args & PARALLEL) {
-				std::cout << "Time for parallel algorithm to complete with " << state.threads << "threads:" << parallel(state) << "ms" << std::endl;
+				std::cout << "Time for parallel algorithm to complete with " << state.threads << " threads: " << parallel(state) << "ms" << std::endl;
 			}
 		}
 
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
 			// start the mpi process in the background
 			std::string exec = "mpirun -np " + std::to_string(state.mpi_procs) + " ./mpi/mpi.elf " + argv[1] + " " + std::to_string(state.kern_process) + " " + std::to_string(port) + " &";
 			std::system(exec.c_str());
-			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << "mpi processes: " << socket_recv(port) << "ms" << std::endl;
+			std::cout << "Time for distributed algorithm to complete with " << state.mpi_procs << " mpi processes: " << socket_recv(port) << "ms" << std::endl;
 		}
 	}
 	else {
@@ -203,6 +204,7 @@ int parse_flags(int argc, char* argv[], State& s) {
 			}
 		}
 	}
+	return 0;
 }
 
 void help() {
